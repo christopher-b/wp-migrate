@@ -69,13 +69,24 @@ module WP
     def install_theme(theme)
       log_info "Attempting to install theme `#{theme}`"
       @client.theme_install(theme)
+    rescue WP::ClientError
+      raise WP::CouldNotInstallThemeError
     end
 
     def activate_theme(theme)
       log_info "Activating theme `#{theme}`"
+      @theme = nil
       @client.theme_activate(@url, theme).tap do |result|
         log_info "Theme not activated" unless result
       end
+    end
+
+    def theme_mods
+      @client.theme_mod_list(url)
+    end
+
+    def set_theme_mod(mod, value)
+      @client.theme_mod_set(url, mod, value)
     end
 
     def is_plugin_active?(plugin)
@@ -86,6 +97,25 @@ module WP
     def enable_plugin(plugin)
       log_info "Enabling plugin `#{plugin}`"
       @client.plugin_activate(url, plugin)
+    end
+
+    def widgets(sidebar)
+      @client.widget_list(url, sidebar["id"])
+      # @widgets ||= {}.tap do |widgs|
+      # sidebars.each do |s|
+      #   pp @client.widget_list(url, s["id"])
+      # end
+    end
+
+    def move_widget(widget, sidebar: nil, position: nil)
+      log_info "Moving widget `#{widget["id"]}` to sidebar `#{sidebar["id"]}`"
+
+      sidebar_id = sidebar ? sidebar["id"] : nil
+      @client.widget_move(url, widget["id"], sidebar_id, position)
+    end
+
+    def sidebars
+      @sidebars ||= @client.sidebar_list(url)
     end
 
     def delete_post(id)

@@ -15,13 +15,19 @@ module WP
       ]
 
       def get_users_for_logins(logins)
+        users_by_username = load_users(logins, :samaccountname)
+        users_by_sis_id = load_users(logins, :ocaderpid)
+        users_by_username.merge users_by_sis_id
+      end
+
+      def load_users(logins, field)
         filter = logins
-          .map { |login| Net::LDAP::Filter.eq(:samaccountname, login) }
+          .map { |login| Net::LDAP::Filter.eq(field, login) }
           .inject(:|)
 
         result = connection.search(filter: filter, attributes: LDAP_USER_ATTRIBUTES)
-        result = normalize_entry(result)
-        result.map { [_1[:samaccountname], _1] }.to_h
+        result = Array.wrap(normalize_entry(result))
+        result.map { [_1[field], _1] }.to_h
       end
 
       def connection

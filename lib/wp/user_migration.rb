@@ -57,7 +57,14 @@ module WP
 
     # A hash mapping old-site user logins to new-site SIS IDs
     def login_map
-      @login_map ||= ldap_users.values.map { [_1[:samaccountname], (_1[:ocaderpid] || _1[:samaccountname])] }
+      @login_map ||= [].tap do |map|
+        user_logins.each do |old_login|
+          ldap_user = ldap_users.values.find { _1[:ocaderpid] == old_login || _1[:samaccountname] == old_login }
+          next unless ldap_user
+          map << [old_login, ldap_user[:ocaderpid] || ldap_user[:samaccountname]]
+        end
+      end
+      # @login_map ||= ldap_users.values.map { [_1[:samaccountname], (_1[:ocaderpid] || _1[:samaccountname])] }
     end
 
     # Change user_login from existing to SIS ID
@@ -65,6 +72,7 @@ module WP
       @corrected_old_users ||= @old_site
         .users
         .map { |user|
+          # pp ldap_users
           old_login = user["user_login"]
           ldap_user = ldap_users[old_login]
           unless ldap_user

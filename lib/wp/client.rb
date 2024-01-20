@@ -3,7 +3,9 @@ require "open3"
 # @TODO Break the commands out into mixins per category
 # https://developer.wordpress.org/cli/commands/
 module WP
+  include Helper
   class Client
+
     def initialize(handle)
       @alias = handle
     end
@@ -47,6 +49,10 @@ module WP
 
     def post_delete(url, id)
       exec("post delete #{id}", url: url)
+    end
+
+    def sidebar_list(url)
+      JSON.parse(exec("sidebar list", url: url, format: "json"))
     end
 
     def site_create(slug, title, admin_email)
@@ -111,6 +117,16 @@ module WP
       exec("theme list", args.merge(defaults))
     end
 
+    def theme_mod_list(url)
+      # exec("theme mod list", url: url, format: "yaml")
+      mods = JSON.parse(exec("theme mod list", url: url, format: "json"))
+      mods.map { [_1["key"], _1["value"]] }.to_h
+    end
+
+    def theme_mod_set(url, mod, value)
+      exec("theme mod set #{mod} #{value}", url: url)
+    end
+
     def theme_search(term)
       JSON.parse(exec("theme search #{term}", format: "json"))
     end
@@ -124,13 +140,27 @@ module WP
       JSON.parse(json)
     end
 
-    private
+    def widget_list(url, sidebar_id)
+      JSON.parse(exec("widget list #{sidebar_id}", url: url, format: "json"))
+    end
+
+    def widget_move(url, widget_id, sidebar_id, position)
+      params = {url: url}
+      params["position"] = position if position
+      params["sidebar-id"] = sidebar_id if sidebar_id
+
+      exec("widget move #{widget_id}", params)
+    end
+
+    # private
 
     def exec(wp_command, args = {})
       default_args = {"skip-plugins": "sitewide-privacy-options"}
       all_args = args.merge(default_args)
 
       command = "bin/wp-cli.phar #{@alias} #{wp_command} #{parse_args(all_args)}"
+
+      # log_debug command
 
       output, error, status = Open3.capture3(command)
       @last_status = status.exitstatus
@@ -146,17 +176,6 @@ module WP
 
     def parse_args(args)
       args.collect { |k, v| v.is_a?(String) ? "--#{k}='#{v}'" : "--#{k}" }.join(" ")
-    end
-
-    def log(msg, level = Logger::DEBUG)
-      logger.add(level, msg)
-    end
-
-    def logger
-      @logger ||= Logger.new($stdout).tap do |logger|
-        log_level = ENV.fetch("LOG_LEVEL", "INFO")
-        logger.level = Logger.const_get(log_level)
-      end
     end
   end
 end

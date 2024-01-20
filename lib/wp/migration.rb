@@ -9,17 +9,20 @@ module WP
     end
 
     def start
-      log_info "Initiating migration for #{@old_url}"
-
-      content_migration.login_map_csv = user_migration.login_map_csv
+      log_info "Migrating for #{@old_url}"
 
       [
         user_migration,
-        file_migration,
         content_migration,
+        file_migration,
         theme_migration,
-        menu_migration
+        menu_migration,
+        widget_migration
       ].each(&:run)
+
+      # options? https://developer.wordpress.org/cli/commands/option/
+
+      log_info "All done! #{new_site.url}"
     end
 
     def old_site
@@ -42,7 +45,7 @@ module WP
     end
 
     def content_migration
-      @content_migration ||= WP::ContentMigration.new(old_site, new_site)
+      @content_migration ||= WP::ContentMigration.new(old_site, new_site, login_map_csv)
     end
 
     def theme_migration
@@ -51,6 +54,14 @@ module WP
 
     def menu_migration
       @menu_migration ||= WP::MenuMigration.new(old_site, new_site)
+    end
+
+    def widget_migration
+      @widget_migration ||= WP::WidgetMigration.new(old_site, new_site)
+    end
+
+    def login_map_csv
+      user_migration.login_map_csv
     end
 
     def site_name
