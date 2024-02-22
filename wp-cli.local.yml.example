@@ -1,0 +1,8 @@
+---
+skip-plugins: sitewide-privacy-options
+@wpmu-old:
+  ssh: your-old-wordpress.com
+  path: path/to/wp/install
+@wpmu-new:
+  ssh: your-new-wordpress.com
+  path: path/to/wp/install
