@@ -1,6 +1,9 @@
 # WP Migrate
 A tool to migrate WP sites between WP Multisite instances
 
+##
+NOTE: This tool was built to support Wordpress migrations at OCAD University. It's being shared here in the event that someone finds it useful, but in it's current form it makes a lot of assumptions about the enviroment in which it run, and is not suited for general use without some modifications.
+
 ## Installation
 
  - Download wp-cli (https://wp-cli.org/) and place wp-cli.phar in ./bin
