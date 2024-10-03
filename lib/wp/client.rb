@@ -5,7 +5,6 @@ require "open3"
 module WP
   include Helper
   class Client
-
     def initialize(handle)
       @alias = handle
     end
@@ -83,7 +82,8 @@ module WP
 
     def site_list(args = {})
       defaults = {format: "json"}
-      json = exec("site list", args.merge(defaults))
+
+      json = exec("site list", defaults.merge(args))
       JSON.parse(json)
     end
 
@@ -145,14 +145,12 @@ module WP
     end
 
     def widget_move(url, widget_id, sidebar_id, position)
-      params = {url: url}
+      params = {"url" => url}
       params["position"] = position if position
       params["sidebar-id"] = sidebar_id if sidebar_id
 
       exec("widget move #{widget_id}", params)
     end
-
-    # private
 
     def exec(wp_command, args = {})
       default_args = {"skip-plugins": "sitewide-privacy-options"}
@@ -160,18 +158,10 @@ module WP
 
       command = "bin/wp-cli.phar #{@alias} #{wp_command} #{parse_args(all_args)}"
 
-      # log_debug command
-
       output, error, status = Open3.capture3(command)
       @last_status = status.exitstatus
       raise WP::ClientError, error.chomp if !error.empty? && !error.match?(/^PHP Notice/)
       output.chomp
-      # rescue StandardError => e
-      #   pp e.inspect
-      #   pp e.message
-      #   pp error
-      #   pp status
-      #   raise e
     end
 
     def parse_args(args)
