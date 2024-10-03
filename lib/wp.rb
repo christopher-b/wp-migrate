@@ -25,6 +25,5 @@ module WP
 
   def self.logger
     @logger ||= ::Logger.new($stdout, level: ENV.fetch("WP_LOG_LEVEL", Logger::INFO))
-    # @logger ||= ::Logger.new($stdout).tap { |l| l.level = ENV.fetch("WP_LOG_LEVEL", Logger::DEBUG) }
   end
 end

@@ -17,13 +17,6 @@ module WP
 
       inactive = new_sidebars.find { _1["id"] == "wp_inactive_widgets" }
 
-      # new_sidebars.each do |ns|
-      #   pp "Sidebar #{ns}"
-      #   @new_site.widgets(ns).each do |w|
-      #     pp "W: #{w}"
-      #   end
-      # end
-
       new_sidebars.each do |new_sidebar|
         log_info "Syncing sidebar `#{new_sidebar["name"]}`"
 
